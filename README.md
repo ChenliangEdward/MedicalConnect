@@ -12,3 +12,11 @@ We will be using **Python Flask** to build servers and hand quewries from client
 
 ### Database Design
 Here is a brief description of the database design:
+
+### Current APIs:
+- Register
+- Read a measure
+- Book an Appointment
+- Check Appointment
+- Check Patient List
+- Upload a measure
