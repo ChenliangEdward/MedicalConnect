@@ -1,17 +1,13 @@
-from flask import Flask, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_restful import Api, Resource, reqparse
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db = SQLAlchemy(app)
-# api = Api(app)
+# from flask_restful import Resource, reqparse
+# from flaskblg.models import *
+# from flaskblg import api
 #
 # user_put_args = reqparse.RequestParser()
 # user_put_args.add_argument("gender", type=str, help="the gender of the user", required=True)
 # user_put_args.add_argument("full_name", type=str, help="the name of the user", required=True)
 # user_put_args.add_argument("email", type=str, help="the email of the user", required=True)
 # user_put_args.add_argument("role", type=str, help="the role of the user", required=True)
+# users = {}
 #
 #
 # # TODO: def abort_if
@@ -29,8 +25,3 @@ db = SQLAlchemy(app)
 #         return {user_id: args}, 201
 #
 #     # TODO: Delete
-#
-#
-# api.add_resource(Users, "/api/users/<int:user_id>")
-
-from flaskblg import route
