@@ -20,7 +20,7 @@ class Patients(db.Model):
     weight = db.Column(db.Float)
     address = db.Column(db.String)
     symptoms = db.Column(db.String)
-    dob = db.Column(db.String(30), nullable=False)
+    dob = db.Column(db.String(30))
 
     def __repr__(self):
         return f"Patients('{self.patient_id}')"
@@ -28,7 +28,7 @@ class Patients(db.Model):
 
 class MedicalProfessionals(db.Model):
     mp_id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True)
-    profession = db.Column(db.String(30), nullable=False)
+    profession = db.Column(db.String(30))
 
     def __repr__(self):
         return f"MedicalProfessionals('{self.mp_id}')"
