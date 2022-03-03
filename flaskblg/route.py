@@ -68,6 +68,47 @@ class Users(Resource):
     # TODO: Delete, Patch
 
 
+admin_patch_args = reqparse.RequestParser()
+admin_patch_args.add_argument("admin_id", type=int, help="the admin_id of the user")
+
+admin_resource_fields = {"admin_id"}
+
+
+class Administrator(Resource):
+    @marshal_with(admin_resource_fields)
+    def get(self, admin_id):
+        result = Admins.query.get(admin_id)
+        if not result:
+            abort(404, message="No such admin found...")
+        return result
+
+
+mp_patch_args = reqparse.RequestParser()
+mp_patch_args.add_argument("weight", type=float, help="the weight of the user")
+mp_patch_args.add_argument("profession", type=str, help="the address of the user")
+
+mp_resource_fields = {"mp_id",
+                      "profession"}
+
+
+class MedicalProfessionals(Resource):
+    @marshal_with(mp_resource_fields)
+    def get(self, mp_id):
+        result = Admins.query.get(mp_id)
+        if not result:
+            abort(404, message="No such admin found...")
+        return result
+
+    @marshal_with(mp_resource_fields)
+    def patch(self, mp_id):
+        args = mp_patch_args.parse_args()
+        result = MedicalProfessionals.query.filter_by(id=mp_id).first()
+        if not result:
+            abort(404, message='the Medical Professional does not exist')
+        if "profession" in args:
+            result.profession = args['profession']
+
+
 patient_patch_args = reqparse.RequestParser()
 patient_patch_args.add_argument("weight", type=float, help="the weight of the user")
 patient_patch_args.add_argument("address", type=str, help="the address of the user")
@@ -118,14 +159,24 @@ device_put_args.add_argument("serialNum", help="the serialNum of the device", re
 device_put_args.add_argument("assignedTo", help="what patient owns this device", required=True)
 device_put_args.add_argument("assignedBy", help="who assigned this device", required=True)
 
+device_resource_fields = {
+    'reading_id': fields.Integer,
+    'usage': fields.Float,
+    'serialNum': fields.String,
+    'assignedTo': fields.String,
+    'assignedBy': fields.String
+}
+
 
 class Devices(Resource):
+    @marshal_with(device_resource_fields)
     def get(self, reading_id):
         result = Devices.query.get(reading_id)
         if not result:
             abort(404, message="no such reading found")
         return result
 
+    @marshal_with(device_resource_fields)
     def put(self, reading_id):
         args = device_put_args.parse_args()
         result = Devices.query.get(reading_id)
@@ -137,8 +188,23 @@ class Devices(Resource):
         db.session.commit()
         print(">>>>LOG_Device<<<< : complete!")
 
+    @marshal_with(device_resource_fields)
     def patch(self, reading_id):
-        
+        args = device_put_args.parse_args()
+        result = Devices.query.filter_by(id=reading_id).first()
+        if not result:
+            abort(404, message='measure does not exist')
+        if "usage" in args:
+            result.weight = args['usage']
+        if "serialNum" in args:
+            result.address = args['serialNum']
+        if "assignedTo" in args:
+            result.symptoms = args['assignedTo']
+        if "assignedBy" in args:
+            result.dob = args['assignedBy']
+        db.session.add(result)
+        db.session.commit()
+
 
 api.add_resource(Users, "/api/users/<int:user_id>")
 api.add_resource(Patients, "/api/patients/<int:patient_id>")
