@@ -86,7 +86,11 @@ if option == 1:
 if option == 0:
     l = get_conversation('Edward', 'Dr.A B')
     # print(l)
+    s = ""
     for i in l:
         dt = datetime.fromtimestamp(i['Datetime'])
         print(dt.strftime('%b %d %Y %I:%M%p'))
         print(i["from"] + ": " + i["Message"] + "\n")
+        s = s + i["from"] + ": " + i["Message"] + "\n"
+    j = json.dumps(s)
+    print(j)

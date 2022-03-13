@@ -3,6 +3,10 @@ from flask import request
 from flaskblg.models import *
 from flaskblg import app
 from flask_restful import Api, Resource, reqparse, fields, marshal_with, abort
+import json
+import time
+from datetime import datetime
+import requests
 
 api = Api(app)
 
@@ -205,9 +209,126 @@ class Devices(Resource):
         db.session.commit()
 
 
+message_args = reqparse.RequestParser()
+message_args.add_argument("from", help="who sends this", required=True)
+message_args.add_argument("to", help="who receive this, email", required=True)
+message_args.add_argument("Message", help="the body of the message", required=True)
+# message_args.add_argument("Datetime", help="what time is itd", required=True)
+message_args.add_argument("password", help="the password of the sender", required=True)
+
+message_resource_fields = {
+    'from': fields.Integer,
+    'to': fields.Float,
+    'Message': fields.String,
+    'password': fields.String
+}
+
+
+def insert_message(f, t, m):
+    timestamp = int(time.time())
+    # dt = datetime.fromtimestamp(timestamp)
+    headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Request-Headers': '*',
+        'api-key': 'CU8wXM1sLJLA40qxvvhVr4IaldsJY7xtZBnnJN0d6zV9cSuStUmGLSXvSGnbozSO',
+    }
+    json_data = {
+        'dataSource': 'Cluster0',
+        'database': 'test',
+        'collection': 'test',
+        'document': {
+            'from': f,
+            'to': t,
+            'Message': m,
+            'Datetime': str(timestamp)
+        },
+    }
+    response = requests.post(
+        'https://data.mongodb-api.com/app/data-nfawj/endpoint/data/beta/action/insertOne', headers=headers,
+        json=json_data)
+
+
+def find_message(f, t):
+    headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Request-Headers': '*',
+        'api-key': 'CU8wXM1sLJLA40qxvvhVr4IaldsJY7xtZBnnJN0d6zV9cSuStUmGLSXvSGnbozSO',
+    }
+
+    json_data = {
+        'dataSource': 'Cluster0',
+        'database': 'test',
+        'collection': 'test',
+        'filter': {
+            'from': f,
+            'to': t
+        },
+    }
+    response = requests.post(
+        'https://data.mongodb-api.com/app/data-nfawj/endpoint/data/beta/action/find',
+        headers=headers,
+        json=json_data)
+    my_json = response.content.decode('utf8').replace("'", '"')
+    data = json.loads(my_json)
+    s = json.dumps(data, indent=4, sort_keys=True)
+    # print(s)
+    return data
+
+
+def get_conversation(f, t):
+    ft = find_message(f, t)
+    tf = find_message(t, f)
+    l1 = ft['documents']
+    l2 = tf['documents']
+    l = l1 + l2
+    for i in l:
+        i['Datetime'] = int(i['Datetime'])
+    l = sorted(l, key=lambda x: x['Datetime'], reverse=False)
+    return l
+
+
+class Messages(Resource):
+    @marshal_with(message_resource_fields)
+    def put(self):
+        args = message_args.parse_args()
+        result = User.query.filter_by(args['from'])
+        if not result:
+            abort(404, message='user email does not exist')
+        result = User.query.filter_by(args['to'])
+        if not result:
+            abort(404, message='receiver email does not exist')
+
+        # Check if the password matches
+        password_check = User.query.filter_by(args['from']).first()
+        if args['password'] != password_check['password']:
+            abort(404, message='user password does not match')
+        try:
+            insert_message(args['from'], args['to'], args['Message'])
+        except:
+            abort(404, message='cannot send message')
+        return {"Message sent"}
+
+    @marshal_with(message_resource_fields)
+    def get(self):
+        args = message_args.parse_args()
+        result = User.query.filter_by(args['from'])
+        if not result:
+            abort(404, message='user email does not exist')
+        result = User.query.filter_by(args['to'])
+        if not result:
+            abort(404, message='receiver email does not exist')
+        # Check if the password matches
+        password_check = User.query.filter_by(args['from']).first()
+        if args['password'] != password_check['password']:
+            abort(404, message='user password does not match')
+        message_retrieved = get_conversation(args['from'], args['to'])
+        return json.dumps(message_retrieved)
+
+
 api.add_resource(Users, "/api/users/<int:user_id>")
 api.add_resource(Patients, "/api/patients/<int:patient_id>")
 api.add_resource(Devices, "/api/devices/<int:reading_id>")
+api.add_resource(Messages, "/api/messages")
 
 
 @app.route("/")
