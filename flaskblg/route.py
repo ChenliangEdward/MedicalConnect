@@ -8,7 +8,6 @@ api = Api(app)
 
 # TODO: def abort_if
 
-
 # API implementation:
 user_put_args = reqparse.RequestParser()
 user_put_args.add_argument("gender", type=str, help="the gender of the user", required=True)
