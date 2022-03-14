@@ -7,10 +7,20 @@ import json
 import time
 from datetime import datetime
 import requests
+import random
 
+# Start DB:
+# from flaskblg import db
+# db.create_all()
 api = Api(app)
 
+
 # TODO: def abort_if
+
+def random_userid():
+    r1 = random.randint(100000, 1000000000)
+    return r1
+
 
 # API implementation:
 user_put_args = reqparse.RequestParser()
@@ -29,27 +39,36 @@ user_resource_fields = {
     'role': fields.String
 }
 
+user_get_args = reqparse.RequestParser()
+user_get_args.add_argument("email", type=str, help="the email of the user", required=True)
+user_get_args.add_argument("password", type=str, help="the password of the user", required=True)
+
 
 class Users(Resource):
+    # Get User information
     @marshal_with(user_resource_fields)
-    def get(self, user_id):
-        result = User.query.get(user_id)
+    def get(self):
+        args = user_get_args.parse_args()
+        # password authenticate
+        result = User.query.filter_by(email=args['email']).first()
         if not result:
             abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
         return result
 
+    # User Signup
     @marshal_with(user_resource_fields)
-    def put(self, user_id):
+    def put(self):
         args = user_put_args.parse_args()
 
         # Check existing record
-        result = User.query.get(user_id)
-        if result:
-            abort(409, message="User exists!")
-        result = User.query.filter_by(args["email"]).first()
+        result = User.query.filter_by(email=args["email"]).first()
         if result:
             abort(409, message="email exists!")
 
+        user_id = random_userid()
         new_user = User(id=user_id, gender=args['gender'], full_name=args['full_name'], role=args['role'],
                         email=args['email'], password=args['password'])
         db.session.add(new_user)
@@ -57,13 +76,15 @@ class Users(Resource):
         print(">>>>LOG<<<< : complete!")
 
         if args['role'] == 'patient':
+            # print(args["email"])
+            # new_patient = Patients(patient_id=user_id, email=args["email"])
             new_patient = Patients(patient_id=user_id)
             db.session.add(new_patient)
-        if args['role'] == 'Administrator':
-            new_admin = Admins(admin_id=user_id)
+        if args['role'] == 'administrator':
+            new_admin = Admins(admin_id=user_id, email=args["email"])
             db.session.add(new_admin)
         if args['role'] == 'doctor':
-            new_doctor = MedicalProfessionals(mp_id=user_id)
+            new_doctor = MedicalProfessionals(mp_id=user_id, email=args["email"])
             db.session.add(new_doctor)
         db.session.commit()
         return new_user, 201
@@ -71,45 +92,71 @@ class Users(Resource):
     # TODO: Delete, Patch
 
 
-admin_patch_args = reqparse.RequestParser()
-admin_patch_args.add_argument("admin_id", type=int, help="the admin_id of the user")
+admin_get_args = reqparse.RequestParser()
+admin_get_args.add_argument("email", type=str, help="the email of the admin", required=True)
 
-admin_resource_fields = {"admin_id"}
+admin_resource_fields = {'admin_id': fields.Integer,
+                         'admin_email': fields.String}
 
 
 class Administrator(Resource):
     @marshal_with(admin_resource_fields)
-    def get(self, admin_id):
-        result = Admins.query.get(admin_id)
+    def get(self):
+        args = admin_get_args.parse_args()
+        result = Admins.query.filter_by(args['email']).first()
         if not result:
             abort(404, message="No such admin found...")
         return result
 
 
 mp_patch_args = reqparse.RequestParser()
-mp_patch_args.add_argument("weight", type=float, help="the weight of the user")
-mp_patch_args.add_argument("profession", type=str, help="the address of the user")
+mp_patch_args.add_argument("profession", type=str, help="the profession of the user")
+mp_patch_args.add_argument("email", type=str, help="the email of the user", required=True)
+mp_patch_args.add_argument("password", type=str, help="the password of the MP", required=True)
+mp_patch_args.add_argument("mp_available", type=str, help="the available time of the MP")
 
-mp_resource_fields = {"mp_id",
-                      "profession"}
+mp_resource_fields = {"mp_id": fields.Integer,
+                      "mp_email": fields.String,
+                      "mp_available": fields.String,
+                      "mp_profession": fields.String}
 
 
-class MedicalProfessionals(Resource):
+class MedicalProfessionalsAPI(Resource):
     @marshal_with(mp_resource_fields)
-    def get(self, mp_id):
-        result = Admins.query.get(mp_id)
+    def get(self):
+        args = mp_patch_args.parse_args()
+
+        # password authenticate
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        result = MedicalProfessionals.query.filter_by(args["email"]).first()
         if not result:
             abort(404, message="No such admin found...")
         return result
 
     @marshal_with(mp_resource_fields)
-    def patch(self, mp_id):
+    def patch(self):
         args = mp_patch_args.parse_args()
-        result = MedicalProfessionals.query.filter_by(id=mp_id).first()
+
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        result = MedicalProfessionals.query.filter_by(email=args["email"]).first()
         if not result:
             abort(404, message='the Medical Professional does not exist')
         if "profession" in args:
             result.profession = args['profession']
+        if "mp_available" in args:
+            result.mp_available = args['mp_available']
+        db.session.add(result)
+        db.session.commit()
 
 
 patient_patch_args = reqparse.RequestParser()
@@ -117,6 +164,8 @@ patient_patch_args.add_argument("weight", type=float, help="the weight of the us
 patient_patch_args.add_argument("address", type=str, help="the address of the user")
 patient_patch_args.add_argument("symptoms", type=str, help="the symptoms of the user")
 patient_patch_args.add_argument("dob", type=str, help="the data of Birth of the user")
+patient_patch_args.add_argument("password", type=str, help="the data of Birth of the user", required=True)
+patient_patch_args.add_argument("email", type=str, help="the data of Birth of the user", required=True)
 
 patient_resource_fields = {
     'patient_id': fields.Integer,
@@ -127,18 +176,40 @@ patient_resource_fields = {
 }
 
 
-class Patients(Resource):
+class PatientsAPI(Resource):
     @marshal_with(patient_resource_fields)
-    def get(self, patient_id):
-        result = Patients.query.get(patient_id)
+    def get(self):
+        args = patient_patch_args.parse_args()
+        # password authenticate
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+        print(args["email"])
+        result = Patients.query.filter_by(email=args["email"]).first()
         if not result:
             abort(404, message="No such user found...")
         return result
 
     @marshal_with(patient_resource_fields)
-    def patch(self, patient_id):
+    def patch(self):
         args = patient_patch_args.parse_args()
-        result = Patients.query.filter_by(id=patient_id).first()
+
+        # password authenticate
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        result = Patients.query.filter_by(email=args["email"]).first()
         if not result:
             abort(404, message='patient does not exist')
         if "weight" in args:
@@ -157,10 +228,18 @@ class Patients(Resource):
 
 device_put_args = reqparse.RequestParser()
 device_put_args.add_argument("reading_id", help="the reading id of the device", required=True)
-device_put_args.add_argument("usage", help="the usage of the device", required=True)
-device_put_args.add_argument("serialNum", help="the serialNum of the device", required=True)
-device_put_args.add_argument("assignedTo", help="what patient owns this device", required=True)
-device_put_args.add_argument("assignedBy", help="who assigned this device", required=True)
+device_put_args.add_argument("usage", type=str, help="the usage of the device", required=True)
+device_put_args.add_argument("serialNum", type=str, help="the serialNum of the device", required=True)
+device_put_args.add_argument("assignedTo", type=str, help="what patient owns this device", required=True)
+device_put_args.add_argument("assignedBy", type=str, help="who assigned this device", required=True)
+
+device_put_args.add_argument("password", type=str, help="the password of the user", required=True)
+device_put_args.add_argument("email", type=str, help="who sent this request", required=True)
+
+device_get_args = reqparse.RequestParser()
+device_get_args.add_argument("password", type=str, help="the password of the user", required=True)
+device_get_args.add_argument("email", type=str, help="who sent this request", required=True)
+device_get_args.add_argument("role", type=str, help="who checked this email", required=True)
 
 device_resource_fields = {
     'reading_id': fields.Integer,
@@ -171,42 +250,61 @@ device_resource_fields = {
 }
 
 
-class Devices(Resource):
+class DevicesAPI(Resource):
     @marshal_with(device_resource_fields)
-    def get(self, reading_id):
-        result = Devices.query.get(reading_id)
+    def get(self):
+        args = device_get_args.parse_args()
+
+        # Password Authentication
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        # if it is the Patient:
+        if args['role'] == "patient":
+            result = Devices.query.filter_by(assignedTo=args['email']).all()
+        elif args['role'] == "mp":
+            result = Devices.query.filter_by(assignedBy=args['email']).all()
         if not result:
             abort(404, message="no such reading found")
         return result
 
     @marshal_with(device_resource_fields)
-    def put(self, reading_id):
+    def put(self):
         args = device_put_args.parse_args()
-        result = Devices.query.get(reading_id)
-        if result:
-            abort(409, message="Device exists!")
+
+        # Password Authentication
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        reading_id = random_userid()
         new_device = Devices(reading_id=reading_id, usage=args['usage'], serialNum=args['serialNum'],
-                             assignedTo=args['assignedTo'], assignedBy=args['assignedBy'])
+                             assignedTo=args['assignedTo'], assignedBy=args['assignedBy'], )
         db.session.add(new_device)
         db.session.commit()
         print(">>>>LOG_Device<<<< : complete!")
 
-    @marshal_with(device_resource_fields)
-    def patch(self, reading_id):
-        args = device_put_args.parse_args()
-        result = Devices.query.filter_by(id=reading_id).first()
-        if not result:
-            abort(404, message='measure does not exist')
-        if "usage" in args:
-            result.weight = args['usage']
-        if "serialNum" in args:
-            result.address = args['serialNum']
-        if "assignedTo" in args:
-            result.symptoms = args['assignedTo']
-        if "assignedBy" in args:
-            result.dob = args['assignedBy']
-        db.session.add(result)
-        db.session.commit()
+    # @marshal_with(device_resource_fields)
+    # def patch(self):
+    #     args = device_put_args.parse_args()
+    #     result = Devices.query.filter_by(id=reading_id).first()
+    #     if not result:
+    #         abort(404, message='measure does not exist')
+    #     if "usage" in args:
+    #         result.weight = args['usage']
+    #     if "serialNum" in args:
+    #         result.address = args['serialNum']
+    #     if "assignedTo" in args:
+    #         result.symptoms = args['assignedTo']
+    #     if "assignedBy" in args:
+    #         result.dob = args['assignedBy']
+    #     db.session.add(result)
+    #     db.session.commit()
 
 
 message_args = reqparse.RequestParser()
@@ -325,10 +423,13 @@ class Messages(Resource):
         return json.dumps(message_retrieved)
 
 
-api.add_resource(Users, "/api/users/<int:user_id>")
-api.add_resource(Patients, "/api/patients/<int:patient_id>")
-api.add_resource(Devices, "/api/devices/<int:reading_id>")
+api.add_resource(Users, "/api/users")
+api.add_resource(PatientsAPI, "/api/patients")
+api.add_resource(DevicesAPI, "/api/devices")
 api.add_resource(Messages, "/api/messages")
+
+
+# api.add_resource(AppointmentsAPI, "/api/appointments")
 
 
 @app.route("/")
@@ -337,7 +438,6 @@ def hello_world():
 
 
 @app.route("/register", methods=['GET', 'POST'])
-# TODO: change it to only deliver the page
 def register():
     a = User.query.get(id=123)
     if request.method == 'POST':

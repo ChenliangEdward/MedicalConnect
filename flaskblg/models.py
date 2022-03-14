@@ -21,6 +21,7 @@ class Patients(db.Model):
     address = db.Column(db.String)
     symptoms = db.Column(db.String)
     dob = db.Column(db.String(30))
+    patient_email = db.Column(db.String, unique=True, nullable=False)
 
     def __repr__(self):
         return f"Patients('{self.patient_id}')"
@@ -28,6 +29,8 @@ class Patients(db.Model):
 
 class MedicalProfessionals(db.Model):
     mp_id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True)
+    mp_email = db.Column(db.String, unique=True, nullable=False)
+    mp_available = db.Column(db.String)
     profession = db.Column(db.String(30))
 
     def __repr__(self):
@@ -36,6 +39,7 @@ class MedicalProfessionals(db.Model):
 
 class Admins(db.Model):
     admin_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    admin_email = db.Column(db.String, unique=True, nullable=False)
 
     def __repr__(self):
         return f"Admins('{self.admin_id}')"
@@ -43,10 +47,10 @@ class Admins(db.Model):
 
 class Appointments(db.Model):
     appointment_id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True)
-    patientID = db.Column(db.Integer, nullable=False)
-    mpID = db.Column(db.Integer, unique=True, nullable=False)
-    timeStart = db.Column(db.DateTime, nullable=False)
-    timeEnd = db.Column(db.DateTime, nullable=False)
+    patient_email = db.Column(db.String, nullable=False)
+    mp_email = db.Column(db.String, unique=True, nullable=False)
+    timeStart = db.Column(db.Integer, nullable=False)
+    timeEnd = db.Column(db.Integer, nullable=False)
     message = db.Column(db.String(200), nullable=True)
 
     def __repr__(self):
@@ -57,5 +61,9 @@ class Devices(db.Model):
     reading_id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True)
     usage = db.Column(db.String(30), nullable=False)
     serialNum = db.Column(db.String(200), nullable=False)
-    assignedTo = db.Column(db.Integer, nullable=False)
-    assignedBy = db.Column(db.Integer, nullable=True)
+    assignedTo = db.Column(db.String, nullable=False)
+    assignedBy = db.Column(db.String, nullable=True)
+    add_date = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"Devices('{self.reading_id}')"
