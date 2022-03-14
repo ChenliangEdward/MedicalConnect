@@ -281,7 +281,7 @@ class AppointmentsAPI(Resource):
         db.session.add(new_appointment)
         db.session.commit()
         print(">>>>LOG_Appointment<<<< : complete!")
-    
+
 
 device_put_args = reqparse.RequestParser()
 device_put_args.add_argument("reading_id", help="the reading id of the device", required=True)
