@@ -187,12 +187,6 @@ class PatientsAPI(Resource):
         if args["password"] != result.password:
             abort(404, message='user password does not match')
 
-        result = User.query.filter_by(email=args['email']).first()
-        if not result:
-            abort(404, message="No such user found...")
-        if args["password"] != result.password:
-            abort(404, message='user password does not match')
-        print(args["email"])
         result = Patients.query.filter_by(email=args["email"]).first()
         if not result:
             abort(404, message="No such user found...")
@@ -226,6 +220,69 @@ class PatientsAPI(Resource):
         return result
 
 
+appointment_put_args = reqparse.RequestParser()
+appointment_put_args.add_argument("patient_email", type=float, help="the email of the patient", required=True)
+appointment_put_args.add_argument("mp_email", type=str, help="the email of the mp", required=True)
+appointment_put_args.add_argument("timeStart", type=str, help="the start time of the appointment", required=True)
+appointment_put_args.add_argument("timeEnd", type=str, help="the end time of the appointment", required=True)
+appointment_put_args.add_argument("message", type=str, help="the message of the appointment")
+appointment_put_args.add_argument("email", type=str, help="the email of the request user", required=True)
+appointment_put_args.add_argument("password", type=str, help="the password the user", required=True)
+
+appointment_get_args = reqparse.RequestParser()
+appointment_get_args.add_argument("email", type=str, help="the email of the request user", required=True)
+appointment_get_args.add_argument("password", type=str, help="the password the user", required=True)
+
+appointment_resource_fields = {
+    'appointment_id': fields.Integer,
+    'patient_email': fields.String,
+    'mp_email': fields.String,
+    'timeStart': fields.Integer,
+    'timeEnd': fields.Integer,
+    'message': fields.String
+}
+
+
+class AppointmentsAPI(Resource):
+    @marshal_with(appointment_resource_fields)
+    def get(self):
+        args = appointment_get_args.parse_args()
+        # password authenticate
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        # get appointments
+        if result.role == "patient":
+            result = Appointments.query.filter_by(patient_email=args['email']).all()
+        elif result.role == "doctor":
+            result = Appointments.query.filter_by(mp_email=args['email']).all()
+        if not result:
+            abort(404, message="no appointments yet")
+        return result
+
+    @marshal_with(appointment_resource_fields)
+    def put(self):
+        args = appointment_put_args.parse_args()
+        # password authenticate
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        # put to DB
+        appointment_id = random_userid()
+        new_appointment = Appointments(reading_id=appointment_id, patient_email=args['patient_email'],
+                                       mp_email=args['mp_email'],
+                                       timeStart=args['timeStart'], timeEnd=args['timeEnd'], message=args['message'])
+        db.session.add(new_appointment)
+        db.session.commit()
+        print(">>>>LOG_Appointment<<<< : complete!")
+    
+
 device_put_args = reqparse.RequestParser()
 device_put_args.add_argument("reading_id", help="the reading id of the device", required=True)
 device_put_args.add_argument("usage", type=str, help="the usage of the device", required=True)
@@ -246,7 +303,8 @@ device_resource_fields = {
     'usage': fields.Float,
     'serialNum': fields.String,
     'assignedTo': fields.String,
-    'assignedBy': fields.String
+    'assignedBy': fields.String,
+    'add_date': fields.Integer
 }
 
 
@@ -284,7 +342,7 @@ class DevicesAPI(Resource):
 
         reading_id = random_userid()
         new_device = Devices(reading_id=reading_id, usage=args['usage'], serialNum=args['serialNum'],
-                             assignedTo=args['assignedTo'], assignedBy=args['assignedBy'], )
+                             assignedTo=args['assignedTo'], assignedBy=args['assignedBy'], add_date=int(time.time()))
         db.session.add(new_device)
         db.session.commit()
         print(">>>>LOG_Device<<<< : complete!")
@@ -389,6 +447,8 @@ class Messages(Resource):
     @marshal_with(message_resource_fields)
     def put(self):
         args = message_args.parse_args()
+
+        # authentication
         result = User.query.filter_by(args['from'])
         if not result:
             abort(404, message='user email does not exist')
@@ -404,6 +464,7 @@ class Messages(Resource):
             insert_message(args['from'], args['to'], args['Message'])
         except:
             abort(404, message='cannot send message')
+
         return {"Message sent"}
 
     @marshal_with(message_resource_fields)
@@ -427,6 +488,7 @@ api.add_resource(Users, "/api/users")
 api.add_resource(PatientsAPI, "/api/patients")
 api.add_resource(DevicesAPI, "/api/devices")
 api.add_resource(Messages, "/api/messages")
+api.add_resource(AppointmentsAPI, "/api/appointments")
 
 
 # api.add_resource(AppointmentsAPI, "/api/appointments")
