@@ -15,13 +15,13 @@ This project aims to provide a platform for closer and more efficient communicat
 ### Database Design
 Here is a brief description of the database design:
 ![Module vs DB](https://github.com/ChenliangEdward/PNGDump/blob/master/medicalconnect/DatabaseDesign.png?raw=true)
-Here, the database for User, Device, Appointment Modules are located in SQLAlchemy and the Message module is locate on MongoDB server.
+Here, the database for User, Device, Appointment Modules are located in SQLAlchemy and the Message module is locate on MongoDB server.\
 
 ### Module APIs:
 #### User :
 - #### /api/users
 - **GET**
-	Give basic account information for the user.
+	Give basic account information for the user.\
 	*Data required:* 
 	```
 	{
@@ -43,6 +43,7 @@ Here, the database for User, Device, Appointment Modules are located in SQLAlche
 	
 - **PUT**
 	Used for User registration and assign them into corresponding database models. 
+	
 	*Data required:* 
 	```
 	{
@@ -62,6 +63,7 @@ Here, the database for User, Device, Appointment Modules are located in SQLAlche
 - #### /api/patients
 - **GET**
 	Give patient related information
+	
 	*Data required:* 
 	```
 	{
@@ -83,6 +85,7 @@ Here, the database for User, Device, Appointment Modules are located in SQLAlche
 	```
 - **Patch**
 	Let user modify their information
+	
 		*Data required:* 
 	```
 	{
@@ -129,6 +132,7 @@ Here, the database for User, Device, Appointment Modules are located in SQLAlche
 	Please note that the mp_available is a string of Unix epoch integers divided by '-' and ','
 - **Patch**
 Modify identity data
+
 		*Data required:* 
 	```
 	{
@@ -151,6 +155,7 @@ Modify identity data
 - #### /api/devices
 - **GET**
 	Give the user's the measurements they have taken. 
+	
 	*Data required:* 
 	```
 	{
@@ -171,8 +176,10 @@ Modify identity data
 	}
 	```
 	Please note that the user needs to specify the role, if the role is 'patient' then the it will return the data of the measurements that is assigned to them. If the role is 'mp', then it will return the measurements that is assigned by them. 
+	
 - **PUT**
 Modify identity data
+
 		*Data required:* 
 	```
 	{  
@@ -193,6 +200,7 @@ Modify identity data
 - #### /api/appointments
 - **GET**
 	Give the user's the measurements they have taken. 
+	
 	*Data required:* 
 	```
 	{
@@ -214,6 +222,7 @@ Modify identity data
 	```
 - **PUT**
 Register an appointment with an MP
+
 		*Data required:* 
 	```
 	{  
@@ -235,6 +244,7 @@ Register an appointment with an MP
 - ####  /api/messages
 - **GET**
 	Give the user's the messages they have sent or received. 
+	
 	*Data required:* 
 	```
 	{
@@ -248,6 +258,7 @@ Register an appointment with an MP
 	```
 - **PUT**
 Register an appointment with an MP
+
 		*Data required:* 
 	```
 	{  
