@@ -2,5 +2,9 @@ import requests
 
 BASE = "http://127.0.0.1:5000/"
 
-response = requests.get(BASE + "/api/patients", {"email": "edwangd@bu.edu", "password": "8609EdWa!?,"})
+email = "patient@bu.edu"
+password_correct = "patient"
+
+response = requests.get(BASE + "/api/patients", {"email": email, "password": password_correct})
 print(response.json())
+assert (response.status_code == 201)
