@@ -496,7 +496,7 @@ api.add_resource(AppointmentsAPI, "/api/appointments")
 
 @app.route("/")
 def hello_world():
-    return "<h1>Welcome to MedicalConnect! </h1>"
+    return "<h1>Welcome to MedicalConnect!</h1>\n<h2>The server is up and running, please test it with the user document</h2>"
 
 
 @app.route("/register", methods=['GET', 'POST'])
