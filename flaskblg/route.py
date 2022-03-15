@@ -129,7 +129,7 @@ class MedicalProfessionalsAPI(Resource):
         if args["password"] != result.password:
             abort(404, message='user password does not match')
 
-        result = MedicalProfessionals.query.filter_by(args["email"]).first()
+        result = MedicalProfessionals.query.filter_by(mp_email=args["email"]).first()
         if not result:
             abort(404, message="No such admin found...")
         return result
