@@ -1,7 +1,7 @@
 import requests
 
 BASE = "http://127.0.0.1:5000/"
-
+BASE = "http://13.59.40.217/"
 # testing User Put
 
 # add User1 patient

@@ -1,7 +1,7 @@
 import requests
 
 BASE = "http://127.0.0.1:5000/"
-
+BASE = "http://13.59.40.217/"
 # testing User Get
 
 #
@@ -9,6 +9,7 @@ BASE = "http://127.0.0.1:5000/"
 email = "patient@bu.edu"
 password_correct = "patient"
 password_wrong = "wrongpassword"
+
 response_get_patient = requests.get(BASE + "/api/users",
                                     {"email": email, "password": password_correct})
 print(response_get_patient.json())

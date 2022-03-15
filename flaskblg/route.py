@@ -194,7 +194,7 @@ class PatientsAPI(Resource):
         args = patient_patch_args.parse_args()
 
         # password authenticate
-        result = User.query.filter_by(patient_email=args['email']).first()
+        result = User.query.filter_by(email=args['email']).first()
         if not result:
             abort(404, message="No such user found...")
         if args["password"] != result.password:
@@ -213,8 +213,7 @@ class PatientsAPI(Resource):
             result.dob = args['dob']
         db.session.add(result)
         db.session.commit()
-
-        return result
+        return result, 201
 
 
 appointment_put_args = reqparse.RequestParser()
