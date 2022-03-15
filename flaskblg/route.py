@@ -132,7 +132,7 @@ class MedicalProfessionalsAPI(Resource):
         result = MedicalProfessionals.query.filter_by(mp_email=args["email"]).first()
         if not result:
             abort(404, message="No such admin found...")
-        return result
+        return result, 201
 
     @marshal_with(mp_resource_fields)
     def patch(self):
