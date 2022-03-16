@@ -278,3 +278,8 @@ Register an appointment with an MP
 
 #### Chat
 ![Chat module logic](https://github.com/ChenliangEdward/PNGDump/blob/master/medicalconnect/Chat%20Module.png?raw=true)
+
+## Deployment:
+
+IP address: http://13.59.40.217/
+![UpandRunning](https://github.com/ChenliangEdward/PNGDump/blob/master/WeChat%20Screenshot_20220316183309.png?raw=true)
