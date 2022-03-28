@@ -6,7 +6,7 @@ BASE = "http://127.0.0.1:5000/"
 email = "doctor@bu.edu"
 password_correct = "doctor"
 password_wrong = "wrongpassword"
-# test patient get
+# test mp get
 
 # success
 response = requests.get(BASE + "/api/mps", {"email": email, "password": password_correct})
@@ -17,3 +17,8 @@ assert (response.status_code == 201)
 response = requests.get(BASE + "/api/mps", {"email": email, "password": password_wrong})
 print(response.json())
 assert (response.status_code == 404)
+
+# test mp fetch
+response1 = requests.patch(BASE + "/api/mps", {"email": email, "password": password_correct, "profession": "Dentist"})
+print(response1.json())
+assert (response1.status_code == 201)

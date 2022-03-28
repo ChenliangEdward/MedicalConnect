@@ -11,3 +11,4 @@ six==1.15.0
 SQLAlchemy==1.4.31
 Werkzeug==2.0
 requests~=2.25.0
+redis~=4.2.0

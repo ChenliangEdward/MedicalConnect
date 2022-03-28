@@ -1,7 +1,7 @@
 import flask
 from flask import request
 from flaskblg.models import *
-from flaskblg import app
+from flaskblg import app, r, q
 from flask_restful import Api, Resource, reqparse, fields, marshal_with, abort
 import json
 import time
@@ -12,6 +12,7 @@ import random
 # Start DB:
 # from flaskblg import db
 # db.create_all()
+
 api = Api(app)
 
 
@@ -114,7 +115,7 @@ mp_patch_args.add_argument("mp_available", type=str, help="the available time of
 mp_resource_fields = {"mp_id": fields.Integer,
                       "mp_email": fields.String,
                       "mp_available": fields.String,
-                      "mp_profession": fields.String}
+                      "profession": fields.String}
 
 
 class MedicalProfessionalsAPI(Resource):
@@ -151,9 +152,10 @@ class MedicalProfessionalsAPI(Resource):
             result.profession = args['profession']
         if "mp_available" in args:
             result.mp_available = args['mp_available']
+        print(result)
         db.session.add(result)
         db.session.commit()
-        return result
+        return result, 201
 
 
 patient_patch_args = reqparse.RequestParser()
@@ -476,7 +478,8 @@ api.add_resource(AppointmentsAPI, "/api/appointments")
 
 @app.route("/")
 def hello_world():
-    return "<h1>Welcome to MedicalConnect!</h1>\n<h2>The server is up and running, please test it with the user document</h2>"
+    return "<h1>Welcome to MedicalConnect!</h1>\n<h2>The server is up and running, please test it with the user " \
+           "document</h2> "
 
 
 @app.route("/register", methods=['GET', 'POST'])

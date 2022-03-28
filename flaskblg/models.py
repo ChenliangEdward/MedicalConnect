@@ -34,7 +34,7 @@ class MedicalProfessionals(db.Model):
     profession = db.Column(db.String(30))
 
     def __repr__(self):
-        return f"MedicalProfessionals('{self.mp_id}')"
+        return f"MedicalProfessionals('{self.profession}')"
 
 
 class Admins(db.Model):
