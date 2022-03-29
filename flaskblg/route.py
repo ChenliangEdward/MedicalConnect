@@ -6,6 +6,7 @@ from flask_restful import Api, Resource, reqparse, fields, marshal_with, abort
 import json
 import time
 from datetime import datetime
+from s2t import real_time_transcription
 import requests
 import random
 
