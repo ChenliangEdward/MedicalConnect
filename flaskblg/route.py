@@ -465,6 +465,7 @@ class Messages(Resource):
         message_retrieved = get_conversation(args['from'], args['to'])
         return json.dumps(message_retrieved)
 
+class MessagesWithVoice(Resource):
 
 api.add_resource(Users, "/api/users")
 api.add_resource(PatientsAPI, "/api/patients")
@@ -472,7 +473,7 @@ api.add_resource(MedicalProfessionalsAPI, "/api/mps")
 api.add_resource(DevicesAPI, "/api/devices")
 api.add_resource(Messages, "/api/messages")
 api.add_resource(AppointmentsAPI, "/api/appointments")
-
+api.add_resource(MessagewithVoice, "/api/messageWithVoice")
 
 # api.add_resource(AppointmentsAPI, "/api/appointments")
 
