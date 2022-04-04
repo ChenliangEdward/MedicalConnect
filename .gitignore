@@ -2,3 +2,6 @@
 .idea
 #ignore virtual envrionment
 venv
+#ignore models
+*.pbmm
+*.scorer
