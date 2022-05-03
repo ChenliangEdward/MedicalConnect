@@ -18,6 +18,17 @@ Here is a brief description of the database design:
 Here, the database for User, Device, Appointment Modules are located in SQLAlchemy and the Message module is locate on MongoDB server.\
 
 ### Module APIs:
+
+**JUMP HERE**
+
+- [User](#user)
+- [Device](#device)
+- [Appointments](#appointments)
+- [Chat](#chat)
+
+
+
+
 #### User :
 - #### /api/users
 - **GET**
