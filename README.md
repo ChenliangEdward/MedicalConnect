@@ -284,10 +284,10 @@ Register an appointment with an MP
 	Status code
 	```
 ### Module Logic
-#### User
+#### User Logic
 ![User module logic](https://github.com/ChenliangEdward/PNGDump/blob/master/medicalconnect/Identity%20Module.png?raw=true)
 
-#### Chat
+#### Chat Logic
 ![Chat module logic](https://github.com/ChenliangEdward/PNGDump/blob/master/medicalconnect/Chat%20Module.png?raw=true)
 
 ## Deployment:
