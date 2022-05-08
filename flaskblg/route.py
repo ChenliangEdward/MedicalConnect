@@ -1,7 +1,8 @@
 import flask
 from flask import request
 from flaskblg.models import *
-from flaskblg import app, r, q
+# from flaskblg import app, r, q
+from flaskblg import app
 from flask_restful import Api, Resource, reqparse, fields, marshal_with, abort
 import json
 import time
