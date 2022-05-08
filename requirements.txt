@@ -12,3 +12,5 @@ SQLAlchemy==1.4.31
 Werkzeug==2.0
 requests~=2.25.0
 redis~=4.2.0
+numpy~=1.22.2
+rq~=1.10.1
