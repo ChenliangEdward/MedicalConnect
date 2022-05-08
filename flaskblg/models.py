@@ -57,13 +57,23 @@ class Appointments(db.Model):
         return f"Appointments('{self.appointment_id}')"
 
 
+class Measures(db.Model):
+    id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True)
+    related_device = db.Column(db.Integer, nullable=False)
+    measurement = db.Column(db.String, nullable=False)
+    unit = db.Column(db.String, nullable=False)
+    timestamp = db.Column(db.String, nullable=False)
+
+
 class Devices(db.Model):
-    reading_id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True)
-    usage = db.Column(db.String(30), nullable=False)
-    serialNum = db.Column(db.String(200), nullable=False)
+    id = db.Column(db.Integer, unique=True, primary_key=True)
+    device_name = db.Column(db.String)
+    model = db.Column(db.String)
+    serial_num = db.Column(db.String, nullable=False)
+    measure_type = db.Column(db.String, unique=True)
     assignedTo = db.Column(db.String, nullable=False)
     assignedBy = db.Column(db.String, nullable=True)
-    add_date = db.Column(db.Integer, nullable=False)
+    timestamp = db.Column(db.String, nullable=False)
 
     def __repr__(self):
-        return f"Devices('{self.reading_id}')"
+        return f"Devices('{self.id}')"

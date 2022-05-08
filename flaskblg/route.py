@@ -6,7 +6,7 @@ from flask_restful import Api, Resource, reqparse, fields, marshal_with, abort
 import json
 import time
 from datetime import datetime
-from s2t import real_time_transcription
+# from s2t import real_time_transcription
 import requests
 import random
 
@@ -283,9 +283,11 @@ class AppointmentsAPI(Resource):
 
 
 device_put_args = reqparse.RequestParser()
-device_put_args.add_argument("reading_id", help="the reading id of the device", required=True)
-device_put_args.add_argument("usage", type=str, help="the usage of the device", required=True)
-device_put_args.add_argument("serialNum", type=str, help="the serialNum of the device", required=True)
+device_put_args.add_argument("id", help="the reading id of the device")
+device_put_args.add_argument("device_name", type=str, help="who assigned this device", required=True)
+device_put_args.add_argument("model", type=str, help="the model of the device", required=True)
+device_put_args.add_argument("measure_type", type=str, help="the measure_type of the device", required=True)
+device_put_args.add_argument("serial_num", type=str, help="the serialNum of the device", required=True)
 device_put_args.add_argument("assignedTo", type=str, help="what patient owns this device", required=True)
 device_put_args.add_argument("assignedBy", type=str, help="who assigned this device", required=True)
 
@@ -295,15 +297,25 @@ device_put_args.add_argument("email", type=str, help="who sent this request", re
 device_get_args = reqparse.RequestParser()
 device_get_args.add_argument("password", type=str, help="the password of the user", required=True)
 device_get_args.add_argument("email", type=str, help="who sent this request", required=True)
+
 device_get_args.add_argument("role", type=str, help="who checked this email", required=True)
 
+device_delete_args = reqparse.RequestParser()
+device_delete_args.add_argument("password", type=str, help="the password of the user", required=True)
+device_delete_args.add_argument("email", type=str, help="who sent this request", required=True)
+device_delete_args.add_argument("id", type=int, help="who sent this request", required=True)
+
 device_resource_fields = {
-    'reading_id': fields.Integer,
+    'id': fields.Integer,
+    'device_name': fields.String,
     'usage': fields.Float,
-    'serialNum': fields.String,
+    'serial_num': fields.String,
+    'measure_type': fields.String,
     'assignedTo': fields.String,
     'assignedBy': fields.String,
-    'add_date': fields.Integer
+
+    'email': fields.String,
+    'password': fields.String,
 }
 
 
@@ -311,7 +323,6 @@ class DevicesAPI(Resource):
     @marshal_with(device_resource_fields)
     def get(self):
         args = device_get_args.parse_args()
-
         # Password Authentication
         result = User.query.filter_by(email=args['email']).first()
         if not result:
@@ -339,12 +350,101 @@ class DevicesAPI(Resource):
         if args["password"] != result.password:
             abort(404, message='user password does not match')
 
-        reading_id = random_userid()
-        new_device = Devices(reading_id=reading_id, usage=args['usage'], serialNum=args['serialNum'],
-                             assignedTo=args['assignedTo'], assignedBy=args['assignedBy'], add_date=int(time.time()))
+        new_device = Devices(device_name=args['device_name'], model=args['usage'], serial_num=args['serial_num'],
+                             measure_type=args['measure_type'],
+                             assignedTo=args['assignedTo'], assignedBy=args['assignedBy'], timestamp=int(time.time()))
         db.session.add(new_device)
         db.session.commit()
         print(">>>>LOG_Device<<<< : complete!")
+        return "Device Adding Complete!"
+
+    @marshal_with(device_resource_fields)
+    def delete(self):
+        args = device_delete_args.parse_args()
+
+        # Password Authentication
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        Devices.query.filter_by(id=args['id']).delete()
+        db.session.commit()
+        print("Delete Complete!")
+        return "Device delete Complete!"
+
+
+measure_put_args = reqparse.RequestParser()
+measure_put_args.add_argument("related_device", type=str, help="", required=True)
+measure_put_args.add_argument("measurement", type=str, help="")
+measure_put_args.add_argument("unit", type=str, help="")
+measure_put_args.add_argument("email", type=str, help="the email of the user", required=True)
+measure_put_args.add_argument("password", type=str, help="the password of the MP", required=True)
+
+measure_get_args = reqparse.RequestParser()
+measure_get_args.add_argument("related_device", type=str, help="", required=True)
+measure_get_args.add_argument("email", type=str, help="the email of the user", required=True)
+measure_get_args.add_argument("password", type=str, help="the password of the MP", required=True)
+
+measure_delete_args = reqparse.RequestParser()
+measure_delete_args.add_argument("id", type=str, help="", required=True)
+measure_delete_args.add_argument("email", type=str, help="the email of the user", required=True)
+measure_delete_args.add_argument("password", type=str, help="the password of the MP", required=True)
+
+measure_resource_fields = {
+    'id': fields.String,
+    'related_device': fields.String,
+    'measurement': fields.String,
+    'unit': fields.String,
+    'email': fields.String,
+    'password': fields.String,
+}
+
+
+class MeasurementsAPI(Resource):
+    @marshal_with(measure_resource_fields)
+    def get(self):
+        args = measure_get_args.parse_args()
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        result = Measures.query.filter_by(related_device=args['related_device']).all()
+        if not result:
+            return "No Device Found!"
+        else:
+            return result
+
+    @marshal_with(measure_resource_fields)
+    def put(self):
+        args = measure_put_args.parse_args()
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+        new_measure = Measures(related_device=args['related_device'], measurement=args['measurement'],
+                               unit=args['unit'],
+                               timestamp=int(time.time()))
+        db.session.add(new_measure)
+        db.session.commit()
+
+    @marshal_with(measure_delete_args)
+    def delete(self):
+        args = measure_get_args.parse_args()
+        result = User.query.filter_by(email=args['email']).first()
+        if not result:
+            abort(404, message="No such user found...")
+        if args["password"] != result.password:
+            abort(404, message='user password does not match')
+
+        Measures.query.filter_by(id=args['id']).delete()
+        db.session.commit()
+        print("Measures Complete!")
+        return "Measures delete Complete!"
 
 
 message_args = reqparse.RequestParser()
@@ -465,15 +565,22 @@ class Messages(Resource):
         message_retrieved = get_conversation(args['from'], args['to'])
         return json.dumps(message_retrieved)
 
-class MessagesWithVoice(Resource):
+
+# class Voice(Resource):
 
 api.add_resource(Users, "/api/users")
 api.add_resource(PatientsAPI, "/api/patients")
 api.add_resource(MedicalProfessionalsAPI, "/api/mps")
-api.add_resource(DevicesAPI, "/api/devices")
 api.add_resource(Messages, "/api/messages")
 api.add_resource(AppointmentsAPI, "/api/appointments")
-api.add_resource(MessagewithVoice, "/api/messageWithVoice")
+# enter Measurements
+api.add_resource(MeasurementsAPI, "/api/measurement")
+# register device
+api.add_resource(DevicesAPI, "/api/devices")
+
+
+# api.add_resource(Voice, "/api/Voice")
+
 
 # api.add_resource(AppointmentsAPI, "/api/appointments")
 
