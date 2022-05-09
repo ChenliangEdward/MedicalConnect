@@ -1,6 +1,9 @@
 # MedicalConnect
 This project aims to provide a platform for closer and more efficient communication and monitoring between patients and medical professionals. For example, medical professionals can monitor the measure from devices (sphygmomanometer, Thermometer) of patients. Patients can book appointments with registered professionals.
 
+Frontend Repo:https://github.com/Timc233/medical-app  
+Deployment: https://timc233.github.io/medical-app/
+
 ### Branch Strategy
 - This repo is consisted with 3 branches: main, dev, test.
 - **main**: The most stable and tested version, will only be updated when fully tested and is always functional. 
@@ -11,6 +14,7 @@ This project aims to provide a platform for closer and more efficient communicat
 - Service Logic : **Python Flask**
 -  Server Container: **AWS EC2**
 - Database: **SQLAlchemy** and **MongoDB**
+- Frontend: Vue.js
 
 ### Database Design
 Here is a brief description of the database design:
